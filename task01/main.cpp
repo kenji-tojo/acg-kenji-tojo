@@ -31,6 +31,29 @@ Eigen::Matrix<double,4,4,Eigen::RowMajor> GetHomographicTransformation(
   // (c0[2][0],c0[][1],z) -> (c1[2][0],c1[2][1],z)
   // (c0[3][0],c0[][1],z) -> (c1[3][0],c1[3][1],z)
 
+  {
+    Eigen::Matrix<double,8,8> A;
+    Eigen::Matrix<double,8,1> b;
+    A.setZero(); b.setZero();
+    for (int i=0;i<4;i++) {
+      for (int j=0;j<2;j++) {
+        auto row = 2*i+j;
+        A(row,3*j+0) = c0[i][0];
+        A(row,3*j+1) = c0[i][1];
+        A(row,3*j+2) = 1;
+        A(row,6) = -c0[i][0]*c1[i][j];
+        A(row,7) = -c0[i][1]*c1[i][j];
+        b(row) = c1[i][j];
+      }
+    }
+    auto a = A.colPivHouseholderQr().solve(b);
+    m <<
+      a(0), a(1),    0, a(2),
+      a(3), a(4),    0, a(5),
+         0,    0,    0,    0, // assuming that z = 0
+      a(6), a(7),    0,    1;
+  }
+
   return m;
 }
 
