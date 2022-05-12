@@ -25,9 +25,22 @@ float SDF(vec3 pos)
   // The radius of the small spheres is `0.12` and it's repeaded at intrval of `0.2` in the grid pattern
   // Look Inigo Quilez's article for hints:
   // https://iquilezles.org/articles/distfunctions/
+  float d1 = length(pos);
+  vec3 cen = 0.2 * floor(vec3(0.5) + pos * 5.0);
+  float d2 = length(cen - pos);
+  if (d1 >= 0.8+0.12*2.0) {
+    return d1 - 0.8;
+  }
+  if (d1 >= 0.8) {
+    return max(d1 - 0.8, max(0.12 - d2, 0));
+  }
+  if (d2 <= 0.12) {
+    return 0.12 - d2;
+  }
+  return -min(0.8-d1, d2-0.12);
 
   // for "problem2" the code below is not used.
-  return sdf_box(pos, vec3(0.1,0.2,0.3));
+  // return sdf_box(pos, vec3(0.1,0.2,0.3));
 }
 
 void main()
