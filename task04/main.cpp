@@ -48,29 +48,31 @@ double SamplingHemisphere(
   // hint3: for longitude use inverse sampling method to achieve cosine weighted sample.
   // hint4: first assume z is the up in the polar coordinate, then rotate the sampled direction such that "z" will be up.
   // write some codes below (5-10 lines)
-
-
-  // below: naive implementation to "uniformly" sample hemisphere using "rejection sampling"
-  // to not be used for the "problem2" in the assignment
-  for(int i=0;i<10;++i) { // 10 is a magic number
-    const auto d0 = dfm2::MyERand48<double>(Xi);  // you can sample uniform distribution [0,1] with this function
-    const auto d1 = dfm2::MyERand48<double>(Xi);
-    const auto d2 = dfm2::MyERand48<double>(Xi);
-    dir[0] = d0 * 2 - 1; // dir[0] -> [-1,+1]
-    dir[1] = d1 * 2 - 1;
-    dir[2] = d2 * 2 - 1;
-    double len = std::sqrt(dir[0] * dir[0] + dir[1] * dir[1] + dir[2] * dir[2]);
-    if( len > 1 ){ continue; } // reject if outside the unit sphere
-    if( len < 1.0e-5 ){ continue; }
-    // project on the surface of the unit sphere
-    dir[0] /= len;
-    dir[1] /= len;
-    dir[2] /= len;
-    double cos = nrm[0]*dir[0] + nrm[1]*dir[1] + nrm[2]*dir[2]; // cosine weight
-    if( cos < 0 ){ continue; }
-    return cos*2;  // (coefficient=1/M_PI) * (area_of_hemisphere=M_PI*2) = 2
+  
+  // define local frame around nrm
+  double local_x[3]{ 0 };
+  if (nrm[0] < 1e-5) {
+    local_x[0] = 1.0;
+  } else {
+    const auto len = sqrt(nrm[0]*nrm[0]+nrm[1]*nrm[1]);
+    local_x[0] =  nrm[1]/len;
+    local_x[1] = -nrm[0]/len;
   }
-  return 0;
+  double local_y[3]{ // local_y = cross(nrm,local_x)
+    /*local_x[2]==0*/ - nrm[2]*local_x[1],
+    nrm[2]*local_x[0],
+    nrm[0]*local_x[1] - nrm[1]*local_x[0]
+  };
+  const auto cos_theta = dfm2::MyERand48<double>(Xi);
+  const auto sin_theta = sqrt(fmax(0,1-cos_theta*cos_theta));
+  const auto phi = dfm2::MyERand48<double>(Xi) * M_PI * 2.0;
+  const auto cos_phi = cos(phi);
+  const auto sin_phi = sin(phi);
+  for (int i=0;i<3;i++) {
+    dir[i] = cos_theta*nrm[i] + sin_theta*cos_phi*local_x[i] + sin_theta*sin_phi*local_y[i];
+  }
+
+  return 1;
 }
 
 double SampleAmbientOcclusion(
