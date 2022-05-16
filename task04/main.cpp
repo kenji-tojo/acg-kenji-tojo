@@ -51,7 +51,7 @@ double SamplingHemisphere(
   
   // define local frame around nrm
   double local_x[3]{ 0 };
-  if (nrm[0] < 1e-5) {
+  if (fabs(nrm[0]) < 1e-5) {
     local_x[0] = 1.0;
   } else {
     const auto len = sqrt(nrm[0]*nrm[0]+nrm[1]*nrm[1]);
