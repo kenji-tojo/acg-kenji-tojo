@@ -206,7 +206,7 @@ void LinearBlendSkinning(
     if (ibone_p != UINT_MAX) { // this is not root bone
       transformParent = bones[ibone_p].transformGlobal;  // set parent bone transformation
     }
-    // bones[ibone].transformGlobal = /* write single line code here */
+    bones[ibone].transformGlobal = transformParent * bones[ibone].transformRelative;
   }
   // deform vertex positions of the triangle mesh using linear blend skinning
   const size_t nvtx = vtx_xyz.size() / 3;
@@ -225,7 +225,7 @@ void LinearBlendSkinning(
       Eigen::Matrix4d inverseBindMatrix = bones[ibone].inverseBindMatrix;
       Eigen::Matrix4d transformGlobal = bones[ibone].transformGlobal;
       sum_w += w;
-      // pos1 = /* write single line code here */
+      pos1 += w * transformGlobal * inverseBindMatrix * pos0;
     }
     assert(fabs(sum_w) > 1.0e-10);
     pos1 /= sum_w;
